@@ -15,14 +15,15 @@ is_more_valid: Frac F64 -> Bool
 is_more_valid = | number |
     digits = Num.ceiling(Num.log(number) / Num.log(10))
     divisors = List.keep_if(List.range({start: At 1, end: Before digits}), | x | digits % x == 0)
-    List.walk(divisors, 0, | num_patterns, divisor | 
+    pattern_finder = | patterns_found, divisor |
         split = List.map(List.range({start: At 0, end: Before digits, step: divisor}), | x | Num.floor(number / 10^Num.to_frac(x)) % Num.round(10^Num.to_frac(divisor))) 
         first = when List.first(split) is
             Ok(value) -> value
             Err(_) -> crash "Wuh Woh"
         has_pattern = List.all(split, |elem| elem == first)
-        num_patterns + Num.from_bool(has_pattern && first != 0)
-    ) == 0
+        patterns_found + Num.from_bool(has_pattern && first != 0)
+    num_patterns = List.walk(divisors, 0, pattern_finder)
+    num_patterns == 0
 
 main! : List Arg => Result {} _
 main! = |_args|
